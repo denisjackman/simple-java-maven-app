@@ -40,7 +40,13 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p /var/www/simple-java-maven-app
-                    rsync -a target/site/surefire-report.html /var/www/simple-java-maven-app/index.html
+                    REPORT=$(find target -iname "surefire-report.html" | head -n1)
+                    if [ -z "$REPORT" ]; then
+                        echo "surefire-report.html not found; target contents:"
+                        find target
+                        exit 1
+                    fi
+                    rsync -a "$REPORT" /var/www/simple-java-maven-app/index.html
                 '''
             }
         }
