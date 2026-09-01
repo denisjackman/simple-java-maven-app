@@ -40,13 +40,15 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p /var/www/simple-java-maven-app
-                    REPORT=$(find target -iname "surefire-report.html" | head -n1)
-                    if [ -z "$REPORT" ]; then
-                        echo "surefire-report.html not found; target contents:"
+                    REPORT_FILE=$(find target \\( -iname "surefire.html" -o -iname "surefire-report.html" \\) | head -n1)
+                    if [ -z "$REPORT_FILE" ]; then
+                        echo "surefire report not found; target contents:"
                         find target
                         exit 1
                     fi
-                    rsync -a "$REPORT" /var/www/simple-java-maven-app/index.html
+                    REPORT_DIR=$(dirname "$REPORT_FILE")
+                    rsync -a --delete "$REPORT_DIR/" /var/www/simple-java-maven-app/
+                    cp "/var/www/simple-java-maven-app/$(basename "$REPORT_FILE")" /var/www/simple-java-maven-app/index.html
                 '''
             }
         }
