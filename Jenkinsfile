@@ -39,8 +39,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    sudo mkdir -p /var/www/simple-java-maven-app
-                    sudo rsync -a target/site/surefire-report.html /var/www/simple-java-maven-app/index.html
+                    mkdir -p /var/www/simple-java-maven-app
+                    rsync -a target/site/surefire-report.html /var/www/simple-java-maven-app/index.html
                 '''
             }
         }
