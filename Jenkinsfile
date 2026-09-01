@@ -4,6 +4,18 @@ pipeline {
         skipStagesAfterUnstable()
     }
     stages {
+        stage('Toolchain') {
+            steps {
+                sh '''
+                    if ! command -v mvn >/dev/null 2>&1; then
+                        sudo apt-get update && sudo apt-get install -y maven
+                    fi
+                    if ! java -version 2>&1 | grep -q '"21' ; then
+                        sudo apt-get update && sudo apt-get install -y openjdk-21-jdk
+                    fi
+                '''
+            }
+        }
         stage('Build') {
             steps {
                 sh 'mvn -B -DskipTests clean package'
@@ -11,7 +23,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'mvn test'
+                sh 'mvn -B test'
             }
             post {
                 always {
@@ -19,9 +31,17 @@ pipeline {
                 }
             }
         }
-        stage('Deliver') { 
+        stage('Report') {
             steps {
-                sh './jenkins/scripts/deliver.sh' 
+                sh 'mvn -B org.apache.maven.plugins:maven-surefire-report-plugin:3.5.2:report-only'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                    sudo mkdir -p /var/www/simple-java-maven-app
+                    sudo rsync -a target/site/surefire-report.html /var/www/simple-java-maven-app/index.html
+                '''
             }
         }
     }
